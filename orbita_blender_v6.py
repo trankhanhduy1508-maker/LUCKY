@@ -244,7 +244,8 @@ spring("RearShock",(.29,1.16,1.06),.54,.050)
 bpy.ops.mesh.primitive_cylinder_add(vertices=64,radius=.24,depth=.28,location=(.38,1.15,.65),rotation=(0,math.pi/2,0))
 motor=bpy.context.object; motor.data.materials.append(DARK); smooth(motor)
 box("MotorCover",(.40,.93,.66),(.16,.30,.17),BLACK,bev=.055)
-curve("TailLED",[(-.31,1.58,1.48),(0,1.68,1.57),(.31,1.58,1.48)],.023,RED)\ncurve("MotorBlue",[(.53,.72,.90),(.53,.92,.80),(.53,1.12,.78)],.014,BLUE)
+curve("TailLED",[(-.31,1.58,1.48),(0,1.68,1.57),(.31,1.58,1.48)],.023,RED)
+curve("MotorBlue",[(.53,.72,.90),(.53,.92,.80),(.53,1.12,.78)],.014,BLUE)
 box("RearMudguard",(0,1.70,.96),(.19,.32,.045),BLACK,rot=(math.radians(22),0,0),bev=.03)
 
 # Ground / skyline
