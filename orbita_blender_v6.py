@@ -130,6 +130,28 @@ def front_prism(name,profile_xz,y,depth,material,bev=.016):
     if bev: bevel(o,bev,2)
     return o
 
+def arc_fender(name,x,cy,cz,r_outer=.58,r_inner=.49,width=.18,a0=20,a1=160,material=SILVER_HI,steps=26):
+    verts=[]; faces=[]; h=width/2
+    for xx in (x-h,x+h):
+        for rr in (r_outer,r_inner):
+            for i in range(steps+1):
+                a=math.radians(a0+(a1-a0)*i/steps)
+                verts.append((xx,cy+rr*math.cos(a),cz+rr*math.sin(a)))
+    N=steps+1
+    def I(s,r,i): return s*2*N+r*N+i
+    for i in range(steps):
+        faces += [
+            (I(0,0,i),I(0,0,i+1),I(1,0,i+1),I(1,0,i)),
+            (I(0,1,i+1),I(0,1,i),I(1,1,i),I(1,1,i+1)),
+            (I(0,0,i),I(0,1,i),I(0,1,i+1),I(0,0,i+1)),
+            (I(1,0,i+1),I(1,1,i+1),I(1,1,i),I(1,0,i)),
+        ]
+    faces += [(I(0,0,0),I(1,0,0),I(1,1,0),I(0,1,0)),
+              (I(0,0,steps),I(0,1,steps),I(1,1,steps),I(1,0,steps))]
+    me=bpy.data.meshes.new(name+"Mesh"); me.from_pydata(verts,[],faces); me.update()
+    o=bpy.data.objects.new(name,me); bpy.context.collection.objects.link(o); o.data.materials.append(material)
+    bevel(o,.014,2); return o
+
 def spring(name,loc,h=.58,r=.052):
     pts=[]
     for i in range(88):
@@ -161,26 +183,26 @@ rear_st=[
     (1.36,.34,.66,1.50),
     (1.56,.24,.62,1.28),
 ]
-loft("FrontBody",front_st,BLACK)
+loft("FrontBody",front_st,SILVER)
 loft("RearBody",rear_st,BLACK)
 
 # Low step-through chassis
 loft("LowerChassis",[(-.52,.34,.55,.80),(-.20,.38,.54,.82),(.20,.40,.54,.84),(.55,.39,.55,.86),(.82,.34,.56,.87)],DARK)
 
 # Seat
-ellipsoid("Seat",(0,.86,1.63),(.39,.78,.16),SEAT,rot=(math.radians(-2),0,0))
-ellipsoid("SeatRear",(0,1.28,1.66),(.34,.34,.14),SEAT)
+ellipsoid("Seat",(0,.88,1.60),(.38,.88,.13),SEAT,rot=(math.radians(-2),0,0))
+ellipsoid("SeatRear",(0,1.34,1.62),(.34,.38,.12),SEAT)
 curve("Grab",[(-.31,1.50,1.78),(0,1.68,1.82),(.31,1.50,1.78)],.027,SILVER_HI)
 
 # Front armor panels, thinner and following shell
 front_panel=[(-1.22,.90),(-1.15,1.48),(-.95,1.84),(-.73,2.02),(-.56,1.78),(-.47,1.30),(-.54,.96),(-.78,.84)]
 for x in (-.47,.47):
-    side_prism("FrontPanel",front_panel,x,.065,SILVER_HI,.020)
+    side_prism("FrontPanel",front_panel,x*.94,.035,SILVER_HI,.014)
 
 rear_panel=[(.18,.86),(.35,1.28),(.60,1.50),(1.10,1.55),(1.39,1.42),(1.35,1.02),(1.10,.86),(.55,.78)]
 for x in (-.48,.48):
-    side_prism("RearPanel",rear_panel,x,.060,SILVER,.018)
-    side_prism("RearDarkInsert",[(.44,.96),(.66,1.32),(1.20,1.36),(1.12,1.04),(.72,.88)],x*1.02,.035,DARK,.012)
+    side_prism("RearPanel",rear_panel,x*.95,.035,SILVER,.014)
+    side_prism("RearDarkInsert",[(.44,.96),(.66,1.32),(1.20,1.36),(1.12,1.04),(.72,.88)],x*.99,.025,DARK,.010)
     curve("SideLED",[(x*1.05,.38,1.12),(x*1.05,.66,1.02),(x*1.05,.88,.96)],.014,BLUE)
 
 # Front face mask and cheeks from target front view
@@ -213,12 +235,16 @@ for x in (-FX,FX):
     ellipsoid("Fender",(x,FY,1.00),(.24,.48,.11),SILVER_HI)
     box("Amber",(x,-1.66,.97),(.022,.024,.13),AMBER,bev=.010)
 
+# Lower metallic sill along the step-through, as in the reference
+for x in (-.43,.43):
+    side_prism("LowerSill",[(-.48,.68),(-.15,.73),(.38,.74),(.92,.78),(1.15,.85),(.70,.84),(.12,.80),(-.40,.76)],x,.035,SILVER_HI,.012)
+
 # Rear mechanics / tail
 spring("RearShock",(.29,1.16,1.06),.54,.050)
-bpy.ops.mesh.primitive_cylinder_add(vertices=64,radius=.24,depth=.46,location=(0,1.15,.65),rotation=(0,math.pi/2,0))
+bpy.ops.mesh.primitive_cylinder_add(vertices=64,radius=.24,depth=.28,location=(.38,1.15,.65),rotation=(0,math.pi/2,0))
 motor=bpy.context.object; motor.data.materials.append(DARK); smooth(motor)
-box("MotorCover",(0,.91,.66),(.30,.24,.16),BLACK,bev=.06)
-curve("TailLED",[(-.31,1.58,1.48),(0,1.68,1.57),(.31,1.58,1.48)],.023,RED)
+box("MotorCover",(.40,.93,.66),(.16,.30,.17),BLACK,bev=.055)
+curve("TailLED",[(-.31,1.58,1.48),(0,1.68,1.57),(.31,1.58,1.48)],.023,RED)\ncurve("MotorBlue",[(.53,.72,.90),(.53,.92,.80),(.53,1.12,.78)],.014,BLUE)
 box("RearMudguard",(0,1.70,.96),(.19,.32,.045),BLACK,rot=(math.radians(22),0,0),bev=.03)
 
 # Ground / skyline
@@ -256,11 +282,11 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_SPORT_V8.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 renders={}
-renders["hero"]=render("orbita_v8_hero.png",(6.0,-7.0,2.90),(0,.05,1.12),68)
+renders["hero"]=render("orbita_v8_hero.png",(6.2,-7.2,2.55),(0,.04,1.10),70)
 renders["front"]=render("orbita_v8_front.png",(0,-8.0,2.35),(0,-.08,1.12),72)
 renders["side"]=render("orbita_v8_side.png",(-8.0,.05,2.20),(0,.08,1.08),72)
 renders["rear_3q"]=render("orbita_v8_rear_3q.png",(-5.8,6.3,2.75),(0,.10,1.10),68)
-manifest={"status":"PASS","version":"ORBITA_SPORT_V8_LOFTED","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
+manifest={"status":"PASS","version":"ORBITA_SPORT_V9_REFINED","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
 (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2))
 print("ORBITA_V8_PASS")
 print(json.dumps(manifest,indent=2))
