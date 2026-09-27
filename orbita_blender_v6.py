@@ -66,16 +66,31 @@ def curve(name,pts,r,material):
     return o
 
 def wheel(name,loc,r=.47,width=.23):
-    bpy.ops.mesh.primitive_torus_add(major_radius=r*.72,minor_radius=r*.28,major_segments=64,minor_segments=20,location=loc,rotation=(0,math.pi/2,0))
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=r*.72,minor_radius=r*.28,
+        major_segments=64,minor_segments=20,
+        location=loc,rotation=(0,math.pi/2,0)
+    )
     tire=bpy.context.object; tire.name=name+"_Tire"; tire.data.materials.append(RUBBER); smooth(tire)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=64,radius=r*.58,depth=width,location=loc,rotation=(0,math.pi/2,0))
-    rim=bpy.context.object; rim.name=name+"_Rim"; rim.data.materials.append(BLACK); smooth(rim)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=48,radius=r*.16,depth=width*1.06,location=loc,rotation=(0,math.pi/2,0))
-    hub=bpy.context.object; hub.name=name+"_Hub"; hub.data.materials.append(METAL); smooth(hub)
+
+    # open metallic rim ring instead of a filled black disk
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=r*.43,minor_radius=r*.065,
+        major_segments=64,minor_segments=16,
+        location=loc,rotation=(0,math.pi/2,0)
+    )
+    rim=bpy.context.object; rim.name=name+"_Rim"; rim.data.materials.append(METAL); smooth(rim)
+
+    bpy.ops.mesh.primitive_cylinder_add(
+        vertices=48,radius=r*.13,depth=width*1.08,
+        location=loc,rotation=(0,math.pi/2,0)
+    )
+    hub=bpy.context.object; hub.name=name+"_Hub"; hub.data.materials.append(DARK); smooth(hub)
+
     for k in range(6):
-        a=2*math.pi*k/6
-        p=(loc[0],loc[1]+r*.39*math.cos(a),loc[2]+r*.39*math.sin(a))
-        beam(name+f"_Sp{k}",loc,p,.018,SILVER_HI,12)
+        a=2*math.pi*k/6 + math.radians(15)
+        p=(loc[0],loc[1]+r*.38*math.cos(a),loc[2]+r*.38*math.sin(a))
+        beam(name+f"_Sp{k}",loc,p,.026,SILVER_HI,14)
 
 def loft(name,stations,material):
     # station=(y,width,z_bottom,z_top), 8-point faceted cross-section
@@ -169,9 +184,9 @@ wheel("Rear",(0,RY,RZ),.50,.27)
 # Continuous front and rear shells
 front_st=[
     (-1.28,.30,.78,1.38),
-    (-1.12,.50,.76,1.66),
-    (-.92,.54,.74,1.90),
-    (-.72,.47,.72,2.05),
+    (-1.12,.54,.76,1.66),
+    (-.92,.58,.74,1.90),
+    (-.72,.50,.72,2.05),
     (-.54,.35,.76,1.98),
     (-.40,.30,.78,1.72),
 ]
@@ -200,6 +215,10 @@ for x in (-.48,.48):
     side_prism("RearPanel",rear_panel,x*.94,.030,SILVER,.012)
     side_prism("RearDarkInsert",[(.54,.96),(.72,1.22),(1.18,1.30),(1.08,1.08),(.76,.91)],x*.99,.025,DARK,.010)
     curve("SideLED",[(x*1.05,.38,1.12),(x*1.05,.66,1.02),(x*1.05,.88,.96)],.014,BLUE)
+
+# Lower chin fairings under the front cheeks
+for x in (-.51,.51):
+    side_prism("FrontChin",[(-1.24,.82),(-1.12,1.10),(-.83,1.22),(-.58,1.02),(-.64,.83)],x,.028,SILVER,.012)
 
 # Front face mask and cheeks from target front view
 front_prism("FrontMask",[(-.50,1.04),(-.56,1.48),(-.43,1.84),(-.23,2.05),(0,2.12),(.23,2.05),(.43,1.84),(.56,1.48),(.50,1.04),(0,.93)],-1.30,.18,DARK,.025)
@@ -279,11 +298,11 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_SPORT_V8.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 renders={}
-renders["hero"]=render("orbita_v8_hero.png",(6.3,-7.3,2.38),(0,.04,1.06),72)
+renders["hero"]=render("orbita_v8_hero.png",(6.7,-7.7,2.32),(0,.02,1.03),72)
 renders["front"]=render("orbita_v8_front.png",(0,-8.0,2.35),(0,-.08,1.12),72)
 renders["side"]=render("orbita_v8_side.png",(-8.0,.05,2.20),(0,.08,1.08),72)
 renders["rear_3q"]=render("orbita_v8_rear_3q.png",(-5.8,6.3,2.75),(0,.10,1.10),68)
-manifest={"status":"PASS","version":"ORBITA_SPORT_V10_INTEGRATED","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
+manifest={"status":"PASS","version":"ORBITA_SPORT_V11_FACETED_RIMS","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
 (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2))
 print("ORBITA_V8_PASS")
 print(json.dumps(manifest,indent=2))
