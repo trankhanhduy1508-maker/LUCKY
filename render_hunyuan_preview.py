@@ -35,7 +35,7 @@ def mat(name,c,metal=0,rough=.35,emit=None,strength=0):
     if emit:
         bs.inputs["Emission Color"].default_value=emit;bs.inputs["Emission Strength"].default_value=strength
     return m
-DARK=mat("Body",(.025,.035,.05,1),.55,.20)
+DARK=mat("Body",(.48,.54,.62,1),.68,.22)
 RUBBER=mat("Tire",(.006,.007,.009,1),0,.64)
 METAL=mat("Rim",(.35,.38,.42,1),.9,.15)
 BLUE=mat("LED",(.0,.06,.25,1),.1,.08,(0,.38,1,1),8)
