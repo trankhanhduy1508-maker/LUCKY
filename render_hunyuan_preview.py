@@ -60,12 +60,7 @@ def curve(name,pts,r,m):
 # explicit trike hardpoints
 wheel("FrontL",(-.64,-1.50,.50));wheel("FrontR",(.64,-1.50,.50));wheel("Rear",(0,1.46,.50),.50,.28)
 
-# silver front cheeks + LED signature as visual anchors
-for x in (-.44,.44):
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=16,location=(x,-.70,1.38))
-    o=bpy.context.object;o.scale=(.18,.58,.48);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);o.data.materials.append(SILVER)
-curve("LED_L",[(-.38,-1.68,1.72),(-.28,-1.75,1.53),(-.10,-1.78,1.44)],.025,BLUE)
-curve("LED_R",[(.38,-1.68,1.72),(.28,-1.75,1.53),(.10,-1.78,1.44)],.025,BLUE)
+# Raw-body inspection: no decorative overlays. Keep only the explicit 3-wheel hardpoints.
 
 bpy.ops.mesh.primitive_plane_add(size=18,location=(0,0,0))
 g=bpy.context.object;g.data.materials.append(mat("Ground",(.018,.024,.035,1),.25,.25))
