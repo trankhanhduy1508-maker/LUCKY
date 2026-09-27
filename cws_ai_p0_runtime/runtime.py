@@ -111,6 +111,8 @@ except ExecutionError:
 assert scene_digest() == digest_before_forged
 print("CWS_AI_UNTRUSTED_CHECKPOINT_REJECTED_PASS", str(forged_checkpoint), flush=True)
 
+# open_mainfile during rollback invalidates prior RNA object references.
+obj = bpy.data.objects["AI_Product"]
 obj.location = (8.0, 8.0, 8.0)
 assert tuple(float(v) for v in obj.location) != original_location
 restore_result = execute_plan({"version": 1, "commands": [{"op": "checkpoint.restore", "path": str(explicit_checkpoint)}]})
