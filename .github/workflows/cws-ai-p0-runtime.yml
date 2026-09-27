@@ -1,0 +1,55 @@
+name: CWS AI P0 Blender 5.2.2 Runtime
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cws_ai_p0_runtime/**'
+      - '.github/workflows/cws-ai-p0-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Runtime libraries
+        run: |
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y --no-install-recommends xz-utils libgl1 libegl1 libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 libxkbcommon0 libsm6 >/dev/null
+      - name: Official Blender 5.2.2 with checksum
+        run: |
+          set -euxo pipefail
+          ARCHIVE=blender-5.2.2-linux-x64.tar.xz
+          curl -fL --retry 4 --retry-delay 2 https://download.blender.org/release/Blender5.2/$ARCHIVE -o /tmp/$ARCHIVE
+          curl -fL --retry 4 --retry-delay 2 https://download.blender.org/release/Blender5.2/blender-5.2.2.sha256 -o /tmp/blender.sha256
+          EXPECTED="$(grep "  $ARCHIVE$" /tmp/blender.sha256 | awk '{print $1}')"
+          ACTUAL="$(sha256sum /tmp/$ARCHIVE | awk '{print $1}')"
+          test -n "$EXPECTED"
+          test "$EXPECTED" = "$ACTUAL"
+          tar -xf /tmp/$ARCHIVE
+          echo "BLENDER_BIN=$PWD/blender-5.2.2-linux-x64/blender" >> "$GITHUB_ENV"
+          ./blender-5.2.2-linux-x64/blender --version
+          echo CWS_BLENDER_522_SHA256_PASS
+      - name: Build and validate extension package
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/cws-ai-build
+          "$BLENDER_BIN" --command extension build --source-dir cws_ai_p0_runtime/cws_ai_p0 --output-dir /tmp/cws-ai-build
+          test -s /tmp/cws-ai-build/cws_ai_p0-0.1.0.zip
+          "$BLENDER_BIN" --command extension validate /tmp/cws-ai-build/cws_ai_p0-0.1.0.zip --valid-tags=""
+          echo CWS_AI_EXTENSION_PACKAGE_PASS
+      - name: Real Blender AI core runtime
+        run: |
+          set -o pipefail
+          "$BLENDER_BIN" --background --factory-startup --python cws_ai_p0_runtime/runtime.py 2>&1 | tee /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_SCENE_SUMMARY_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_PLAN_VALIDATION_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_BATCH_EXECUTION_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_INVALID_PLAN_NO_MUTATION_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_RUNTIME_FAILURE_ROLLBACK_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_UNTRUSTED_CHECKPOINT_REJECTED_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_CHECKPOINT_RESTORE_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_PREVIEW_PASS /tmp/cws-ai-p0-runtime.log
+          grep -q CWS_AI_ASSISTANT_CORE_RUNTIME_PASS /tmp/cws-ai-p0-runtime.log

@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+id = "cws_ai_p0"
+version = "0.1.0"
+name = "CWS AI P0 Runtime Harness"
+tagline = "Cloud runtime verification for isolated AI control core"
+maintainer = "CWS"
+type = "add-on"
+tags = ["Development"]
+blender_version_min = "5.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Write temporary runtime checkpoints and preview evidence"
