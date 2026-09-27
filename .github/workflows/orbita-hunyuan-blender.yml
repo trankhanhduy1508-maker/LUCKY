@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
+      ORBITA_HERO_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/95ddb160-4d24-4127-84a0-57ee40723859.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiN2ZiMWQzYTBhMDM2YTlmYiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDYyNjA4MH0.kQ9K659hBqHKvCet_4VSDBxpn2KpsDqzkfmKNeED31M"
       ORBITA_FRONT_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/3f743940-5abb-4e99-b5a5-1b2fad41734f.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZGQ2MzgxMGEyM2Y1MDVkMiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDU4OTgzNH0.X2Lw90LYikN9yNa3LkJb_dfSIrkA-uIGPsFLWp3uE2g"
       ORBITA_BACK_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/5171ffb4-d624-4263-9533-87f2dfa8f4f9.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmMxYmNkNjBiOTIyMzAzMyIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDY0MzU1Mn0.8-_C8uyed7Kf5Jiudy3txH9DYcs2_MfeGIMGbkIlbcI"
       ORBITA_LEFT_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/ec3c258b-8588-4f95-a7cf-c3cda496391f.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTY4Yzg1NDczNmQ5NDQ3OSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDY1MTMzNX0.G0HgkyjVbSeKij7hZaYywkoDXp2FAzWMuSkYqurTn-k"
