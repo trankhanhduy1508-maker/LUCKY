@@ -16,6 +16,8 @@ jobs:
   reconstruct:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      ORBITA_IMAGE_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/95ddb160-4d24-4127-84a0-57ee40723859.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiN2ZiMWQzYTBhMDM2YTlmYiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDYyNjA4MH0.kQ9K659hBqHKvCet_4VSDBxpn2KpsDqzkfmKNeED31M"
 
     steps:
       - name: Checkout runner repo
@@ -48,6 +50,20 @@ jobs:
           sed '/torchmcubes/d' triposr/requirements.txt > /tmp/triposr-requirements.txt
           python -m pip install -r /tmp/triposr-requirements.txt
           python -m pip install onnxruntime
+
+      - name: Download valid ORBITA reference image
+        run: |
+          set -euxo pipefail
+          mkdir -p input
+          curl -fL --retry 3 "$ORBITA_IMAGE_URL" -o input/orbita_hero.jpg
+          test -s input/orbita_hero.jpg
+          python - <<'PY'
+          from PIL import Image
+          p="input/orbita_hero.jpg"
+          im=Image.open(p)
+          im.verify()
+          print("ORBITA_INPUT_VALID", p)
+          PY
 
       - name: Reconstruct ORBITA mesh on CPU
         env:
