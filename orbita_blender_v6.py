@@ -191,12 +191,12 @@ front_st=[
     (-.40,.30,.78,1.72),
 ]
 rear_st=[
-    (.08,.36,.70,1.20),
-    (.34,.46,.70,1.46),
-    (.72,.48,.72,1.60),
-    (1.08,.43,.70,1.62),
-    (1.36,.34,.66,1.50),
-    (1.56,.24,.62,1.28),
+    (.08,.38,.70,1.34),
+    (.34,.47,.70,1.53),
+    (.72,.49,.72,1.62),
+    (1.08,.44,.70,1.64),
+    (1.36,.35,.66,1.52),
+    (1.56,.25,.62,1.30),
 ]
 loft("FrontBody",front_st,SILVER)
 loft("RearBody",rear_st,BLACK)
@@ -205,8 +205,8 @@ loft("RearBody",rear_st,BLACK)
 loft("LowerChassis",[(-.52,.34,.55,.80),(-.20,.38,.54,.82),(.20,.40,.54,.84),(.55,.39,.55,.86),(.82,.34,.56,.87)],DARK)
 
 # Seat
-ellipsoid("Seat",(0,.88,1.60),(.38,.88,.13),SEAT,rot=(math.radians(-2),0,0))
-ellipsoid("SeatRear",(0,1.34,1.62),(.34,.38,.12),SEAT)
+ellipsoid("Seat",(0,.88,1.56),(.38,.88,.13),SEAT,rot=(math.radians(-2),0,0))
+ellipsoid("SeatRear",(0,1.34,1.58),(.34,.38,.12),SEAT)
 curve("Grab",[(-.31,1.50,1.78),(0,1.68,1.82),(.31,1.50,1.78)],.027,SILVER_HI)
 
 # Front shell is the silver loft itself; no floating outer plates in V10.
@@ -219,6 +219,11 @@ for x in (-.48,.48):
 # Lower chin fairings under the front cheeks
 for x in (-.51,.51):
     side_prism("FrontChin",[(-1.24,.82),(-1.12,1.10),(-.83,1.22),(-.58,1.02),(-.64,.83)],x,.028,SILVER,.012)
+
+# Deep dark recess on both sides of the steering column, matching the scooter step-through silhouette
+front_recess=[(-.93,1.03),(-.83,1.47),(-.67,1.82),(-.49,1.88),(-.46,1.62),(-.50,1.26),(-.64,.98)]
+for x in (-.515,.515):
+    side_prism("FrontSideRecess",front_recess,x,.030,BLACK,.012)
 
 # Front face mask and cheeks from target front view
 front_prism("FrontMask",[(-.50,1.04),(-.56,1.48),(-.43,1.84),(-.23,2.05),(0,2.12),(.23,2.05),(.43,1.84),(.56,1.48),(.50,1.04),(0,.93)],-1.30,.18,DARK,.025)
@@ -306,11 +311,11 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_SPORT_V8.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 renders={}
-renders["hero"]=render("orbita_v8_hero.png",(7.5,-6.3,2.32),(0,.05,1.04),72)
+renders["hero"]=render("orbita_v8_hero.png",(7.8,-5.8,2.30),(0,.08,1.03),72)
 renders["front"]=render("orbita_v8_front.png",(0,-8.0,2.35),(0,-.08,1.12),72)
 renders["side"]=render("orbita_v8_side.png",(-8.0,.05,2.20),(0,.08,1.08),72)
 renders["rear_3q"]=render("orbita_v8_rear_3q.png",(-5.8,6.3,2.75),(0,.10,1.10),68)
-manifest={"status":"PASS","version":"ORBITA_SPORT_V12_COCKPIT","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
+manifest={"status":"PASS","version":"ORBITA_SPORT_V13_SIDE_RECESS","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
 (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2))
 print("ORBITA_V8_PASS")
 print(json.dumps(manifest,indent=2))
