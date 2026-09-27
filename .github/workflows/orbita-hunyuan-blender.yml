@@ -1,0 +1,84 @@
+name: ORBITA Hunyuan MultiView to Blender
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - hunyuan_mv_remote.py
+      - render_hunyuan_blender.py
+      - .github/workflows/orbita-hunyuan-blender.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  multiview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      ORBITA_FRONT_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/3f743940-5abb-4e99-b5a5-1b2fad41734f.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZGQ2MzgxMGEyM2Y1MDVkMiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDU4OTgzNH0.X2Lw90LYikN9yNa3LkJb_dfSIrkA-uIGPsFLWp3uE2g"
+      ORBITA_BACK_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/5171ffb4-d624-4263-9533-87f2dfa8f4f9.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmMxYmNkNjBiOTIyMzAzMyIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDY0MzU1Mn0.8-_C8uyed7Kf5Jiudy3txH9DYcs2_MfeGIMGbkIlbcI"
+      ORBITA_LEFT_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/ec3c258b-8588-4f95-a7cf-c3cda496391f.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTY4Yzg1NDczNmQ5NDQ3OSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDY1MTMzNX0.G0HgkyjVbSeKij7hZaYywkoDXp2FAzWMuSkYqurTn-k"
+      ORBITA_RIGHT_URL: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/c01cb131-ac4b-4ff5-9739-f17c05afc84f.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYjRjNjBhMTdhZTY0MGVkYSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDYxODM5MX0.mFrmOT9tDEJx6-JGbCQo3IIeSafVPvsuK_QeYniBSVs"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Gradio client
+        run: |
+          python -m pip install --upgrade pip
+          pip install "gradio_client>=1.3,<2" requests
+
+      - name: Generate multi-view mesh with public Hunyuan3D
+        run: |
+          set -euxo pipefail
+          rm -rf hunyuan3d
+          python hunyuan_mv_remote.py
+
+      - name: Install Blender runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xz-utils libgl1 libegl1 libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 libxkbcommon0 libsm6
+
+      - name: Download Blender 5.2.1 LTS
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 3 --retry-delay 2 https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz -o blender.tar.xz
+          tar -xf blender.tar.xz
+          BLENDER_BIN="$PWD/blender-5.2.1-linux-x64/blender"
+          "$BLENDER_BIN" --version
+          echo "BLENDER_BIN=$BLENDER_BIN" >> "$GITHUB_ENV"
+
+      - name: Import Hunyuan mesh and render in Blender
+        run: |
+          set -euxo pipefail
+          "$BLENDER_BIN" --background --factory-startup --python render_hunyuan_blender.py
+
+      - name: Validate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("hunyuan3d")
+          meshes=list(root.glob("orbita_hunyuan.*"))
+          assert meshes and meshes[0].stat().st_size>0
+          assert (root/"ORBITA_HUNYUAN_BLENDER.blend").stat().st_size>0
+          m=json.loads((root/"render/manifest.json").read_text())
+          assert m["status"]=="PASS"
+          assert m["blender_version"].startswith("5.2.1")
+          assert len(m["renders"])==6
+          for name,b in m["renders"].items():
+              p=root/"render"/f"{name}.png"
+              assert p.is_file() and p.stat().st_size==b and b>0
+          print("ORBITA_HUNYUAN_EVIDENCE_VALIDATED")
+          print(json.dumps(m,indent=2))
+          PY
+
+      - name: Upload Hunyuan Blender evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbita-hunyuan-blender
+          path: hunyuan3d/
+          retention-days: 3
+          if-no-files-found: error
