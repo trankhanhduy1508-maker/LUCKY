@@ -6,6 +6,7 @@ OUT="hunyuan3d"
 os.makedirs(OUT, exist_ok=True)
 
 urls={
+  "hero":os.environ["ORBITA_HERO_URL"],
   "front":os.environ["ORBITA_FRONT_URL"],
   "back":os.environ["ORBITA_BACK_URL"],
   "left":os.environ["ORBITA_LEFT_URL"],
@@ -37,23 +38,23 @@ if target is None:
 if target is None:
     raise RuntimeError("No shape-generation endpoint found")
 
-front=handle_file(urls["front"]); back=handle_file(urls["back"]); left=handle_file(urls["left"]); right=handle_file(urls["right"])
+hero=handle_file(urls["hero"]); front=handle_file(urls["front"]); back=handle_file(urls["back"]); left=handle_file(urls["left"]); right=handle_file(urls["right"])
 
 print("CALLING",target)
 # Parameters from the app source: caption,image,mv_front,mv_back,mv_left,mv_right,steps,guidance,seed,octree,rembg,num_chunks,randomize_seed
 result=client.predict(
-    None,
-    None,
+    "Futuristic three-wheeled electric scooter, two front wheels and one rear wheel, sporty angular silver and black body, blue V-shaped LED headlights, long black seat, exposed suspension, mirrors and handlebars",
+    hero,
     front,
     back,
     left,
     right,
-    30,
-    5.5,
+    40,
+    6.0,
     1234,
-    256,
+    384,
     True,
-    200000,
+    250000,
     False,
     api_name=target,
 )
