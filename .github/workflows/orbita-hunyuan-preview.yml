@@ -1,0 +1,38 @@
+name: ORBITA Hunyuan Fast Preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - render_hunyuan_preview.py
+      - .github/workflows/orbita-hunyuan-preview.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get verified Hunyuan mesh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p preview /tmp/src
+          curl -fL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/trankhanhduy1508-maker/LUCKY/actions/artifacts/10927725222/zip -o /tmp/src.zip
+          unzip -q /tmp/src.zip -d /tmp/src
+          cp /tmp/src/orbita_hunyuan.glb preview/orbita_hunyuan.glb
+      - name: Runtime libs
+        run: |
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y --no-install-recommends xz-utils libgl1 libegl1 libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 libxkbcommon0 libsm6 >/dev/null
+      - name: Blender
+        run: |
+          curl -fL https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz -o blender.tar.xz
+          tar -xf blender.tar.xz
+          ./blender-5.2.1-linux-x64/blender --background --factory-startup --python render_hunyuan_preview.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbita-hunyuan-preview
+          path: preview/
+          retention-days: 3
