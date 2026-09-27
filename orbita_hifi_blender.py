@@ -214,7 +214,7 @@ world=bpy.context.scene.world or bpy.data.worlds.new("World"); bpy.context.scene
 nodes=world.node_tree.nodes; links=world.node_tree.links
 for n in list(nodes): nodes.remove(n)
 out=nodes.new("ShaderNodeOutputWorld"); bg=nodes.new("ShaderNodeBackground"); sky=nodes.new("ShaderNodeTexSky")
-sky.sky_type="NISHITA"; sky.sun_elevation=math.radians(6); sky.sun_rotation=math.radians(205); sky.altitude=0.2; sky.air_density=1.2
+sky.sky_type="MULTIPLE_SCATTERING"; sky.sun_elevation=math.radians(6); sky.sun_rotation=math.radians(205); sky.altitude=0.2; sky.air_density=1.2
 bg.inputs["Strength"].default_value=0.45
 links.new(sky.outputs["Color"],bg.inputs["Color"]); links.new(bg.outputs["Background"],out.inputs["Surface"])
 
