@@ -60,3 +60,5 @@ def main():
     manifest={"status":"PASS","runner":"github-public-actions","blender_version":".".join(map(str,bpy.app.version)),"render_engine":sc.render.engine,"checkpoint":{"file":blend.name,"bytes":blend.stat().st_size},"renders":renders,"checks":checks,"object_count":len(sc.objects),"elapsed_seconds":round(time.time()-started,3)}
     (out/"manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True),encoding="utf-8"); print("CWS_CLOUD_BLENDER_PASS"); print(json.dumps(manifest,indent=2,sort_keys=True))
 if __name__=="__main__": main()
+
+# CWS cloud probe trigger: workflow already exists on default branch.
