@@ -18,8 +18,8 @@ def mat(name,c,metal=0.0,rough=.35,emit=None,strength=0.0):
         bs.inputs["Emission Color"].default_value=emit
         bs.inputs["Emission Strength"].default_value=strength
     return m
-SILVER=mat("ORBITA Silver",(.58,.64,.73,1),.86,.17)
-SILVER_HI=mat("ORBITA Silver Hi",(.84,.87,.92,1),.72,.19)
+SILVER=mat("ORBITA Silver",(.34,.40,.49,1),.86,.18)
+SILVER_HI=mat("ORBITA Silver Hi",(.54,.60,.68,1),.76,.19)
 BLACK=mat("ORBITA Black",(.010,.014,.022,1),.35,.18)
 DARK=mat("ORBITA Graphite",(.025,.035,.052,1),.58,.22)
 RUBBER=mat("Tire",(.006,.007,.009,1),0,.66)
@@ -173,10 +173,13 @@ for x in (-.39,.39):
 # Front face: black central mask + silver angular cheeks
 front_mask=[(-.48,.90),(-.56,1.35),(-.43,1.80),(-.22,2.06),(0,2.13),(.22,2.06),(.43,1.80),(.56,1.35),(.48,.90),(0,.82)]
 front_prism("FrontMask",front_mask,-1.39,.22,DARK,.035)
-left_cheek=[(-.70,1.00),(-.65,1.50),(-.49,1.88),(-.24,2.00),(-.18,1.77),(-.30,1.36),(-.45,1.02)]
+left_cheek=[(-.60,1.04),(-.56,1.47),(-.44,1.80),(-.25,1.91),(-.20,1.73),(-.30,1.39),(-.41,1.08)]
 right_cheek=[(-x,z) for x,z in reversed(left_cheek)]
-front_prism("FrontCheek_L",left_cheek,-1.43,.16,SILVER_HI,.026)
-front_prism("FrontCheek_R",right_cheek,-1.43,.16,SILVER_HI,.026)
+front_prism("FrontCheek_L",left_cheek,-1.45,.12,SILVER_HI,.022)
+front_prism("FrontCheek_R",right_cheek,-1.45,.12,SILVER_HI,.022)
+
+front_prism("LampInsert_L",[(-.53,1.20),(-.49,1.66),(-.36,1.79),(-.22,1.70),(-.28,1.42),(-.39,1.19)],-1.515,.055,BLACK,.012)
+front_prism("LampInsert_R",[(.53,1.20),(.49,1.66),(.36,1.79),(.22,1.70),(.28,1.42),(.39,1.19)],-1.515,.055,BLACK,.012)
 
 # Blue V-shaped headlight signature on the foremost surface
 curve("HeadLED_L",[(-.49,-1.535,1.78),(-.38,-1.55,1.56),(-.15,-1.56,1.45)],.026,BLUE)
@@ -206,13 +209,7 @@ box("MotorCover",(.0,.89,.66),(.31,.25,.17),BLACK,bev=.07)
 curve("TailLED",[(-.34,1.57,1.49),(0,1.65,1.58),(.34,1.57,1.49)],.025,RED)
 box("RearMudguard",(0,1.67,.95),(.20,.34,.045),BLACK,rot=(math.radians(22),0,0),bev=.035)
 
-# Branding on both side panels
-text_obj("ORBITA",(-.465,.90,1.33),.14,WHITE,(math.pi/2,0,0))
-text_obj("SPORT",(-.470,.90,1.18),.095,BLUE,(math.pi/2,0,0))
-text_obj("ORBITA",(.465,.90,1.33),.14,WHITE,(math.pi/2,0,math.pi))
-text_obj("SPORT",(.470,.90,1.18),.095,BLUE,(math.pi/2,0,math.pi))
-
-# ---------- Environment ----------
+# Branding omitted in V7 geometry review to avoid mirrored typography.\n\n# ---------- Environment ----------
 GROUND=mat("Ground",(.025,.032,.045,1),.38,.20)
 bpy.ops.mesh.primitive_plane_add(size=24,location=(0,0,0)); bpy.context.object.data.materials.append(GROUND)
 # simple skyline behind vehicle
@@ -254,13 +251,13 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_SPORT_V6.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 renders={}
-renders["hero"]=render("orbita_v6_hero.png",(4.65,-5.35,2.62),(0,0,1.17),64)
-renders["front"]=render("orbita_v6_front.png",(0,-6.6,2.30),(0,-.10,1.16),70)
-renders["side"]=render("orbita_v6_side.png",(-6.4,0,2.15),(0,.05,1.12),70)
-renders["rear_3q"]=render("orbita_v6_rear_3q.png",(-4.5,5.1,2.55),(0,.10,1.13),64)
+renders["hero"]=render("orbita_v6_hero.png",(6.5,-7.2,3.05),(0,.02,1.13),70)
+renders["front"]=render("orbita_v6_front.png",(0,-8.0,2.45),(0,-.05,1.13),72)
+renders["side"]=render("orbita_v6_side.png",(-8.2,.05,2.35),(0,.08,1.10),70)
+renders["rear_3q"]=render("orbita_v6_rear_3q.png",(-6.2,6.7,2.95),(0,.10,1.10),68)
 manifest={
     "status":"PASS",
-    "version":"ORBITA_SPORT_V6_ANGULAR",
+    "version":"ORBITA_SPORT_V7_REFINED",
     "blender_version":".".join(map(str,bpy.app.version)),
     "object_count":len(scene.objects),
     "blend_bytes":blend.stat().st_size,
