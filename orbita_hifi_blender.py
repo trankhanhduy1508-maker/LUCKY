@@ -21,7 +21,7 @@ BLACK=mat("Black",(.012,.018,.025,1),.25,.18)
 DARK=mat("Dark",(.035,.045,.06,1),.58,.24)
 RUBBER=mat("Rubber",(.008,.009,.012,1),0,.62)
 METAL=mat("Metal",(.16,.18,.22,1),.92,.14)
-BLUE=mat("BlueLED",(.005,.055,.20,1),.1,.07,(.02,.55,1,1),16)
+BLUE=mat("BlueLED",(.005,.08,.38,1),.1,.09,(.0,.30,1.0,1),6)
 RED=mat("RedLED",(.18,.004,.004,1),.1,.1,(1,.01,.01,1),12)
 AMBER=mat("Amber",(.2,.04,.003,1),.05,.1,(1,.18,.01,1),9)
 SEAT=mat("Seat",(.015,.018,.024,1),0,.60)
@@ -108,6 +108,19 @@ def arc_fender(name,cx,cy,cz,r_outer,r_inner,width,material,a0=25,a1=155,steps=2
     me=bpy.data.meshes.new(name+"Mesh");me.from_pydata(verts,[],faces);me.update()
     o=bpy.data.objects.new(name,me);bpy.context.collection.objects.link(o);o.data.materials.append(material);bevel(o,.018,2);return o
 
+def face_extrude(name,x,coords,depth,material,bev=.012):
+    # polygon in YZ plane, extruded along X
+    verts=[]
+    for xx in (x-depth/2,x+depth/2):
+        for y,z in coords: verts.append((xx,y,z))
+    n=len(coords);faces=[tuple(range(n-1,-1,-1)),tuple(range(n,2*n))]
+    for i in range(n):
+        j=(i+1)%n;faces.append((i,j,n+j,n+i))
+    me=bpy.data.meshes.new(name+"Mesh");me.from_pydata(verts,[],faces);me.update()
+    o=bpy.data.objects.new(name,me);bpy.context.collection.objects.link(o);o.data.materials.append(material)
+    if bev: bevel(o,bev,2)
+    return o
+
 def spring(name,loc,h=.55,r=.06):
     pts=[]
     for i in range(90):
@@ -158,8 +171,18 @@ prism("Nose",[(.92,1.30),(1.15,1.52),(1.24,1.83),(1.07,1.96),(.90,1.68)],.26,BLA
 
 # aggressive blue eyes, pulled forward
 for y in (-.25,.25):
-    curve("LED",[(1.32,y,1.78),(1.40,y*1.12,1.60),(1.18,y*1.30,1.48)],.027,BLUE)
-    curve("LED2",[(1.27,y*.52,1.78),(1.10,y*.72,1.58)],.016,BLUE)
+    curve("LED",[(1.32,y,1.78),(1.40,y*1.12,1.60),(1.18,y*1.30,1.48)],.020,BLUE)
+    curve("LED2",[(1.27,y*.52,1.78),(1.10,y*.72,1.58)],.012,BLUE)
+
+# emissive headlamp faces on the actual front plane so the V signature reads in render
+face_extrude("HeadlampL",1.405,[(-.39,1.78),(-.26,1.73),(-.17,1.57),(-.31,1.48),(-.43,1.61)],.032,BLUE,.010)
+face_extrude("HeadlampR",1.405,[(.39,1.78),(.26,1.73),(.17,1.57),(.31,1.48),(.43,1.61)],.032,BLUE,.010)
+face_extrude("InnerLampL",1.418,[(-.20,1.75),(-.12,1.70),(-.08,1.59),(-.15,1.57)],.028,BLUE,.008)
+face_extrude("InnerLampR",1.418,[(.20,1.75),(.12,1.70),(.08,1.59),(.15,1.57)],.028,BLUE,.008)
+
+# small silver brow facets framing the lamps
+face_extrude("BrowL",1.37,[(-.48,1.86),(-.22,1.88),(-.18,1.80),(-.42,1.75)],.06,SILVER2,.012)
+face_extrude("BrowR",1.37,[(.48,1.86),(.22,1.88),(.18,1.80),(.42,1.75)],.06,SILVER2,.012)
 
 # bar and mirrors
 beam("Stem",(.52,0,1.92),(.52,0,2.20),.04,METAL)
@@ -204,9 +227,9 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_HIFI_CLOUD.blend";bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 sizes={}
-sizes["hero"]=render("orbita_hifi_hero.png",(6.1,-5.75,3.05),(0,0,1.18),62)
-sizes["front"]=render("orbita_hifi_front.png",(7.15,0,2.30),(.25,0,1.18),68)
+sizes["hero"]=render("orbita_hifi_hero.png",(6.55,-6.45,2.68),(.02,0,1.18),68)
+sizes["front"]=render("orbita_hifi_front.png",(7.55,0,2.15),(.30,0,1.20),72)
 sizes["side"]=render("orbita_hifi_side.png",(0,-8.1,2.12),(-.08,0,1.16),72)
-manifest={"status":"PASS","blender_version":".".join(map(str,bpy.app.version)),"blend_bytes":blend.stat().st_size,"renders":sizes,"objects":len(scene.objects),"elapsed_seconds":round(time.time()-T0,3),"version":"V4 angular-panel"}
+manifest={"status":"PASS","blender_version":".".join(map(str,bpy.app.version)),"blend_bytes":blend.stat().st_size,"renders":sizes,"objects":len(scene.objects),"elapsed_seconds":round(time.time()-T0,3),"version":"V5 front-signature"}
 (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
 print("CWS_ORBITA_HIFI_PASS");print(json.dumps(manifest,indent=2))
