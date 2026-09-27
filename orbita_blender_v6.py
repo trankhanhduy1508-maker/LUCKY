@@ -234,6 +234,9 @@ curve("LED2_R",[( .30,-1.42,1.74),( .14,-1.43,1.58)],.012,BLUE)
 # Nose/windscreen/handlebars
 front_prism("Nose",[(-.14,1.20),(-.18,1.60),(-.10,1.91),(0,1.98),(.10,1.91),(.18,1.60),(.14,1.20)],-1.39,.06,BLACK,.012)
 front_prism("Windscreen",[(-.29,1.80),(-.21,2.08),(0,2.19),(.21,2.08),(.29,1.80),(0,1.75)],-.59,.09,GLASS,.020)
+front_prism("HandlebarCowl",[(-.48,1.93),(-.40,2.12),(-.22,2.20),(0,2.16),(.22,2.20),(.40,2.12),(.48,1.93),(0,1.86)],-.61,.24,DARK,.024)
+front_prism("CowlSilverL",[(-.50,1.94),(-.39,2.10),(-.23,2.15),(-.18,2.03),(-.33,1.92)],-.625,.10,SILVER_HI,.012)
+front_prism("CowlSilverR",[(.50,1.94),(.39,2.10),(.23,2.15),(.18,2.03),(.33,1.92)],-.625,.10,SILVER_HI,.012)
 beam("Stem",(0,-.54,1.68),(0,-.58,2.08),.040,METAL)
 beam("Handlebar",(-.56,-.60,2.08),(.56,-.60,2.08),.029,METAL)
 for x in (-.54,.54):
@@ -254,14 +257,19 @@ for x in (-FX,FX):
 for x in (-.43,.43):
     side_prism("LowerSill",[(-.48,.68),(-.15,.73),(.38,.74),(.92,.78),(1.15,.85),(.70,.84),(.12,.80),(-.40,.76)],x,.035,SILVER_HI,.012)
 
+for x in (-.43,.43):
+    side_prism("FloorTrim",[(-.43,.64),(-.12,.69),(.38,.70),(.86,.75),(1.02,.82),(.62,.79),(.08,.76),(-.36,.71)],x,.025,SILVER_HI,.010)
+
 # Rear mechanics / tail
 spring("RearShock",(.29,1.16,1.06),.54,.050)
 bpy.ops.mesh.primitive_cylinder_add(vertices=64,radius=.24,depth=.28,location=(.38,1.15,.65),rotation=(0,math.pi/2,0))
 motor=bpy.context.object; motor.data.materials.append(DARK); smooth(motor)
 box("MotorCover",(.40,.93,.66),(.16,.30,.17),BLACK,bev=.055)
-curve("TailLED",[(-.31,1.58,1.48),(0,1.68,1.57),(.31,1.58,1.48)],.023,RED)
+side_prism("TailShoulderL",[(1.26,1.36),(1.47,1.45),(1.62,1.38),(1.48,1.28)],-.38,.030,SILVER_HI,.010)
+side_prism("TailShoulderR",[(1.26,1.36),(1.47,1.45),(1.62,1.38),(1.48,1.28)],.38,.030,SILVER_HI,.010)
+curve("TailLED",[(-.34,1.58,1.48),(0,1.75,1.59),(.34,1.58,1.48)],.023,RED)
 curve("MotorBlue",[(.53,.72,.90),(.53,.92,.80),(.53,1.12,.78)],.014,BLUE)
-box("RearMudguard",(0,1.70,.96),(.19,.32,.045),BLACK,rot=(math.radians(22),0,0),bev=.03)
+box("RearMudguard",(0,1.78,.96),(.19,.38,.045),BLACK,rot=(math.radians(22),0,0),bev=.03)
 
 # Ground / skyline
 GROUND=mat("Ground",(.022,.029,.042,1),.30,.23)
@@ -298,11 +306,11 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_SPORT_V8.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 renders={}
-renders["hero"]=render("orbita_v8_hero.png",(6.7,-7.7,2.32),(0,.02,1.03),72)
+renders["hero"]=render("orbita_v8_hero.png",(7.5,-6.3,2.32),(0,.05,1.04),72)
 renders["front"]=render("orbita_v8_front.png",(0,-8.0,2.35),(0,-.08,1.12),72)
 renders["side"]=render("orbita_v8_side.png",(-8.0,.05,2.20),(0,.08,1.08),72)
 renders["rear_3q"]=render("orbita_v8_rear_3q.png",(-5.8,6.3,2.75),(0,.10,1.10),68)
-manifest={"status":"PASS","version":"ORBITA_SPORT_V11_FACETED_RIMS","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
+manifest={"status":"PASS","version":"ORBITA_SPORT_V12_COCKPIT","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
 (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2))
 print("ORBITA_V8_PASS")
 print(json.dumps(manifest,indent=2))
