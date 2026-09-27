@@ -1,0 +1,49 @@
+name: ORBITA V8 Fast Preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/orbita-v8-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make preview script
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("orbita_blender_v6.py")
+          s=p.read_text()
+          s=s.replace('scene.render.resolution_x=960; scene.render.resolution_y=540;', 'scene.render.resolution_x=640; scene.render.resolution_y=360;')
+          for line in [
+            'renders["front"]=render("orbita_v8_front.png",(0,-8.0,2.35),(0,-.08,1.12),72)',
+            'renders["side"]=render("orbita_v8_side.png",(-8.0,.05,2.20),(0,.08,1.08),72)',
+            'renders["rear_3q"]=render("orbita_v8_rear_3q.png",(-5.8,6.3,2.75),(0,.10,1.10),68)',
+          ]:
+              s=s.replace(line, '# preview skips this view')
+          Path("orbita_v8_preview.py").write_text(s)
+          PY
+      - name: Runtime
+        run: |
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y --no-install-recommends xz-utils libgl1 libegl1 libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 libxkbcommon0 libsm6 >/dev/null
+          curl -fL https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz -o blender.tar.xz
+          tar -xf blender.tar.xz
+          ./blender-5.2.1-linux-x64/blender --background --factory-startup --python orbita_v8_preview.py
+      - name: Check preview
+        run: |
+          test -s v6_evidence/orbita_v8_hero.png
+          test -s v6_evidence/ORBITA_SPORT_V8.blend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbita-v8-fast-preview
+          path: |
+            v6_evidence/orbita_v8_hero.png
+            v6_evidence/ORBITA_SPORT_V8.blend
+            v6_evidence/manifest.json
+          retention-days: 3
