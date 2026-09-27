@@ -1,4 +1,4 @@
-name: ORBITA V10 Fast Preview
+name: ORBITA V10b Fast Preview
 on:
   push:
     branches: [main]
