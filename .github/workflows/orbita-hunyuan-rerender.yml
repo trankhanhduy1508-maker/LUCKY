@@ -1,0 +1,81 @@
+name: ORBITA Hunyuan Blender Rerender
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - render_hunyuan_blender.py
+      - .github/workflows/orbita-hunyuan-rerender.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rerender:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download verified Hunyuan source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/hunyuan_src hunyuan3d
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/trankhanhduy1508-maker/LUCKY/actions/artifacts/10927725222/zip \
+            -o /tmp/hunyuan.zip
+          unzip -q /tmp/hunyuan.zip -d /tmp/hunyuan_src
+          test -s /tmp/hunyuan_src/orbita_hunyuan.glb
+          cp /tmp/hunyuan_src/orbita_hunyuan.glb hunyuan3d/orbita_hunyuan.glb
+          ls -lh hunyuan3d/orbita_hunyuan.glb
+
+      - name: Install Blender runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xz-utils libgl1 libegl1 libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 libxkbcommon0 libsm6
+
+      - name: Download Blender 5.2.1 LTS
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 3 --retry-delay 2 https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz -o blender.tar.xz
+          tar -xf blender.tar.xz
+          BLENDER_BIN="$PWD/blender-5.2.1-linux-x64/blender"
+          "$BLENDER_BIN" --version
+          echo "BLENDER_BIN=$BLENDER_BIN" >> "$GITHUB_ENV"
+
+      - name: Render corrected Hunyuan mesh in Blender
+        run: |
+          set -euxo pipefail
+          "$BLENDER_BIN" --background --factory-startup --python render_hunyuan_blender.py
+
+      - name: Validate Blender outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("hunyuan3d")
+          m=json.loads((root/"render/manifest.json").read_text())
+          assert m["status"]=="PASS"
+          assert m["version"]=="HUNYUAN_HYBRID_V4_AXIS_FIXED"
+          assert m["blender_version"].startswith("5.2.1")
+          assert m["explicit_wheels"]==3
+          assert (root/"ORBITA_HUNYUAN_BLENDER.blend").stat().st_size>0
+          for name,b in m["renders"].items():
+              p=root/"render"/f"{name}.png"
+              assert p.is_file() and p.stat().st_size==b and b>0
+          print("ORBITA_HUNYUAN_AXIS_FIX_VALIDATED")
+          print(json.dumps(m,indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbita-hunyuan-axis-fixed
+          path: hunyuan3d/
+          retention-days: 3
+          if-no-files-found: error
