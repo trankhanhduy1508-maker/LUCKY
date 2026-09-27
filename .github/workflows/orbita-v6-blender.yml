@@ -1,4 +1,4 @@
-name: ORBITA Sport V6 Blender
+name: ORBITA Sport Final Blender
 on:
   push:
     branches: [main]
@@ -32,15 +32,20 @@ jobs:
           m=json.loads((root/"manifest.json").read_text())
           assert m["status"]=="PASS"
           assert m["blender_version"].startswith("5.2.1")
-          assert (root/"ORBITA_SPORT_V6.blend").stat().st_size>0
-          for f in ["orbita_v6_hero.png","orbita_v6_front.png","orbita_v6_side.png","orbita_v6_rear_3q.png"]:
-              assert (root/f).is_file() and (root/f).stat().st_size>0
-          print("ORBITA_V6_VALIDATED")
+          blends=list(root.glob("*.blend"))
+          assert len(blends)==1 and blends[0].stat().st_size>0
+          assert m["blend_bytes"]==blends[0].stat().st_size
+          assert set(m["renders"])=={"hero","front","side","rear_3q"}
+          for key,expected_bytes in m["renders"].items():
+              files=list(root.glob(f"*_{key}.png"))
+              assert len(files)==1, (key, files)
+              assert files[0].stat().st_size==expected_bytes and expected_bytes>0
+          print("ORBITA_FINAL_VALIDATED")
           print(json.dumps(m,indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: orbita-sport-v6-blender
+          name: orbita-sport-final-blender
           path: v6_evidence/
           retention-days: 3
           if-no-files-found: error
