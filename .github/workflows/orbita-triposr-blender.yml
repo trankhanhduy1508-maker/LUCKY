@@ -1,0 +1,120 @@
+name: ORBITA Open Source 3D to Blender
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - input/orbita_hero.jpg
+      - render_reconstructed_mesh.py
+      - .github/workflows/orbita-triposr-blender.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout runner repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential git ffmpeg libgl1 libegl1 libglib2.0-0 \
+            libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 \
+            libxkbcommon0 libsm6 xz-utils
+
+      - name: Clone TripoSR
+        run: |
+          git clone --depth 1 https://github.com/VAST-AI-Research/TripoSR.git triposr
+
+      - name: Install CPU reconstruction stack
+        run: |
+          python -m pip install --upgrade "pip<26" "setuptools<81" wheel
+          python -m pip install "numpy<2"
+          python -m pip install torch==2.1.0 torchvision==0.16.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r triposr/requirements.txt
+          python -m pip install onnxruntime
+
+      - name: Reconstruct ORBITA mesh on CPU
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+        run: |
+          set -euxo pipefail
+          mkdir -p triposr/output
+          cd triposr
+          python run.py ../input/orbita_hero.jpg \
+            --device cpu \
+            --output-dir output \
+            --model-save-format glb \
+            --mc-resolution 128 \
+            --chunk-size 2048 \
+            --foreground-ratio 0.90
+          test -s output/0/mesh.glb
+          ls -lh output/0/mesh.glb
+
+      - name: Install Blender 5.2.1 LTS
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 3 --retry-delay 2 \
+            https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz \
+            -o blender.tar.xz
+          tar -xf blender.tar.xz
+          BLENDER_BIN="$PWD/blender-5.2.1-linux-x64/blender"
+          "$BLENDER_BIN" --version
+          echo "BLENDER_BIN=$BLENDER_BIN" >> "$GITHUB_ENV"
+
+      - name: Import reconstructed mesh and render in Blender
+        run: |
+          set -euxo pipefail
+          rm -rf reconstruction_evidence
+          "$BLENDER_BIN" --background --factory-startup --python render_reconstructed_mesh.py
+
+      - name: Validate real mesh and Blender outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          mesh = Path("triposr/output/0/mesh.glb")
+          root = Path("reconstruction_evidence")
+          manifest = json.loads((root / "manifest.json").read_text())
+
+          assert mesh.is_file() and mesh.stat().st_size > 0
+          assert manifest["status"] == "PASS"
+          assert manifest["source_mesh_bytes"] == mesh.stat().st_size
+          assert manifest["blender_version"].startswith("5.2.1")
+          assert (root / "ORBITA_TRIPOSR_BLENDER.blend").stat().st_size > 0
+          for f in [
+              "orbita_triposr_hero.png",
+              "orbita_triposr_front.png",
+              "orbita_triposr_side.png",
+          ]:
+              assert (root / f).is_file() and (root / f).stat().st_size > 0
+          print("ORBITA_OPEN_SOURCE_3D_VALIDATED")
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Collect mesh
+        run: |
+          cp triposr/output/0/mesh.glb reconstruction_evidence/ORBITA_TRIPOSR.glb
+          cp triposr/output/0/input.png reconstruction_evidence/triposr_input.png || true
+
+      - name: Upload reconstruction evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbita-triposr-blender
+          path: reconstruction_evidence/
+          retention-days: 3
+          if-no-files-found: error
