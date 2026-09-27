@@ -1,0 +1,63 @@
+name: ORBITA HiFi Blender
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - orbita_hifi_blender.py
+      - .github/workflows/orbita-hifi-blender.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Blender runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xz-utils libgl1 libegl1 libx11-6 libxi6 libxrender1 libxxf86vm1 libxfixes3 libxkbcommon0 libsm6
+
+      - name: Download Blender 5.2.1 LTS
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 3 --retry-delay 2 https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz -o blender.tar.xz
+          tar -xf blender.tar.xz
+          BLENDER_BIN="$PWD/blender-5.2.1-linux-x64/blender"
+          "$BLENDER_BIN" --version
+          echo "BLENDER_BIN=$BLENDER_BIN" >> "$GITHUB_ENV"
+
+      - name: Build model and render
+        run: |
+          set -euxo pipefail
+          rm -rf evidence
+          "$BLENDER_BIN" --background --factory-startup --python orbita_hifi_blender.py
+
+      - name: Validate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("evidence")
+          m=json.loads((root/"manifest.json").read_text())
+          assert m["status"]=="PASS"
+          assert m["blender_version"].startswith("5.2.1")
+          assert (root/"ORBITA_HIFI_CLOUD.blend").stat().st_size>0
+          for f in ["orbita_hifi_hero.png","orbita_hifi_front.png","orbita_hifi_side.png"]:
+              assert (root/f).is_file() and (root/f).stat().st_size>0
+          print("CWS_ORBITA_HIFI_VALIDATED")
+          print(json.dumps(m,indent=2))
+          PY
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbita-hifi-blender
+          path: evidence/
+          retention-days: 3
+          if-no-files-found: error
