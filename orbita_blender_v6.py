@@ -194,7 +194,8 @@ ellipsoid("Seat",(0,.88,1.60),(.38,.88,.13),SEAT,rot=(math.radians(-2),0,0))
 ellipsoid("SeatRear",(0,1.34,1.62),(.34,.38,.12),SEAT)
 curve("Grab",[(-.31,1.50,1.78),(0,1.68,1.82),(.31,1.50,1.78)],.027,SILVER_HI)
 
-# Front shell is the silver loft itself; no floating outer plates in V10.\nrear_panel=[(.28,.88),(.48,1.12),(.78,1.34),(1.16,1.42),(1.38,1.34),(1.22,1.10),(.72,.90)]
+# Front shell is the silver loft itself; no floating outer plates in V10.
+rear_panel=[(.28,.88),(.48,1.12),(.78,1.34),(1.16,1.42),(1.38,1.34),(1.22,1.10),(.72,.90)]
 for x in (-.48,.48):
     side_prism("RearPanel",rear_panel,x*.94,.030,SILVER,.012)
     side_prism("RearDarkInsert",[(.54,.96),(.72,1.22),(1.18,1.30),(1.08,1.08),(.76,.91)],x*.99,.025,DARK,.010)
