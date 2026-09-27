@@ -49,7 +49,8 @@ for loc,e,size,col in [((4,-4,6),1200,5,(1,.45,.25)),((-3,2,5),850,4,(.15,.3,1))
     bpy.ops.object.light_add(type="AREA",location=loc)
     l=bpy.context.object;l.data.energy=e;l.data.size=size;l.data.color=col
 
-world=bpy.context.scene.world
+world=bpy.context.scene.world or bpy.data.worlds.new("World")
+bpy.context.scene.world=world
 world.color=(.02,.03,.05)
 
 bpy.ops.object.camera_add();cam=bpy.context.object
