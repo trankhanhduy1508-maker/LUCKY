@@ -27,20 +27,28 @@ if not meshes:
     raise RuntimeError("No mesh objects imported")
 
 # ---- normalize AI body ----
-mins=Vector((1e9,1e9,1e9)); maxs=Vector((-1e9,-1e9,-1e9))
-for o in meshes:
-    for c in o.bound_box:
-        p=o.matrix_world@Vector(c)
-        mins.x=min(mins.x,p.x);mins.y=min(mins.y,p.y);mins.z=min(mins.z,p.z)
-        maxs.x=max(maxs.x,p.x);maxs.y=max(maxs.y,p.y);maxs.z=max(maxs.z,p.z)
-center=(mins+maxs)*.5; span=maxs-mins; longest=max(span.x,span.y,span.z)
-
+# Hunyuan mesh coordinates from runtime evidence:
+#   X = vehicle width, Y = vehicle height, Z = vehicle length.
+# Blender scene below uses X=width, Y=length, Z=height.
+# Rotate +90° around X so original Z -> -Y and original Y -> +Z.
 root=bpy.data.objects.new("AI_Body_Root",None);bpy.context.collection.objects.link(root)
 for o in meshes:
     if o.parent is None:o.parent=root
-scale=3.85/longest if longest else 1
-root.scale=(scale,scale,scale)
-root.location=(-center.x*scale,-center.y*scale,-mins.z*scale+0.18)
+root.rotation_euler=(math.radians(90),0,0)
+root.scale=(1.72,1.72,1.72)
+bpy.context.view_layer.update()
+
+# Center rotated body in X/Y and place its lowest point slightly above ground.
+mins=Vector((1e9,1e9,1e9)); maxs=Vector((-1e9,-1e9,-1e9))
+for o in meshes:
+    for corner in o.bound_box:
+        p=o.matrix_world@Vector(corner)
+        mins.x=min(mins.x,p.x);mins.y=min(mins.y,p.y);mins.z=min(mins.z,p.z)
+        maxs.x=max(maxs.x,p.x);maxs.y=max(maxs.y,p.y);maxs.z=max(maxs.z,p.z)
+center=(mins+maxs)*.5
+root.location.x += -center.x
+root.location.y += -center.y
+root.location.z += 0.18-mins.z
 bpy.context.view_layer.update()
 
 # ---- materials ----
@@ -130,10 +138,10 @@ def wheel(name,loc,r=.47,width=.23):
         beam(name+f"_Spoke{k}",loc,p,.018,SILVER2,12)
 
 # ---- hard points: explicit 2-front / 1-rear trike ----
-front_y=-1.46
+front_y=-1.50
 rear_y=1.46
-front_x=.68
-wheel_z=.52
+front_x=.64
+wheel_z=.50
 wheel("FrontWheel_L",(-front_x,front_y,wheel_z),.48,.25)
 wheel("FrontWheel_R",(front_x,front_y,wheel_z),.48,.25)
 wheel("RearWheel",(0,rear_y,wheel_z),.50,.28)
@@ -222,7 +230,7 @@ for name,(loc,target,lens) in views.items():
 blend=ROOT/"ORBITA_HUNYUAN_BLENDER.blend";bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 manifest={
     "status":"PASS",
-    "version":"HUNYUAN_HYBRID_V3",
+    "version":"HUNYUAN_HYBRID_V4_AXIS_FIXED",
     "blender_version":".".join(map(str,bpy.app.version)),
     "source_mesh":mesh_path.name,
     "source_mesh_bytes":mesh_path.stat().st_size,
