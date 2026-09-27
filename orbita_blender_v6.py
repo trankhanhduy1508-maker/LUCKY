@@ -161,19 +161,19 @@ def spring(name,loc,h=.58,r=.052):
     beam(name+"_Core",(loc[0],loc[1],loc[2]-h/2),(loc[0],loc[1],loc[2]+h/2),.022,DARK)
 
 # Wheels / proportions
-FX=.63; FY=-1.36; FZ=.50; RY=1.38; RZ=.53
+FX=.68; FY=-1.36; FZ=.50; RY=1.38; RZ=.53
 wheel("Front_L",(-FX,FY,FZ),.47,.23)
 wheel("Front_R",( FX,FY,FZ),.47,.23)
 wheel("Rear",(0,RY,RZ),.50,.27)
 
 # Continuous front and rear shells
 front_st=[
-    (-1.28,.28,.78,1.42),
-    (-1.12,.48,.76,1.72),
-    (-.92,.52,.74,1.98),
-    (-.72,.45,.72,2.18),
-    (-.54,.33,.76,2.08),
-    (-.40,.29,.78,1.78),
+    (-1.28,.30,.78,1.38),
+    (-1.12,.50,.76,1.66),
+    (-.92,.54,.74,1.90),
+    (-.72,.47,.72,2.05),
+    (-.54,.35,.76,1.98),
+    (-.40,.30,.78,1.72),
 ]
 rear_st=[
     (.08,.36,.70,1.20),
@@ -194,15 +194,10 @@ ellipsoid("Seat",(0,.88,1.60),(.38,.88,.13),SEAT,rot=(math.radians(-2),0,0))
 ellipsoid("SeatRear",(0,1.34,1.62),(.34,.38,.12),SEAT)
 curve("Grab",[(-.31,1.50,1.78),(0,1.68,1.82),(.31,1.50,1.78)],.027,SILVER_HI)
 
-# Front armor panels, thinner and following shell
-front_panel=[(-1.22,.90),(-1.15,1.48),(-.95,1.84),(-.73,2.02),(-.56,1.78),(-.47,1.30),(-.54,.96),(-.78,.84)]
-for x in (-.47,.47):
-    side_prism("FrontPanel",front_panel,x*.94,.035,SILVER_HI,.014)
-
-rear_panel=[(.18,.86),(.35,1.28),(.60,1.50),(1.10,1.55),(1.39,1.42),(1.35,1.02),(1.10,.86),(.55,.78)]
+# Front shell is the silver loft itself; no floating outer plates in V10.\nrear_panel=[(.28,.88),(.48,1.12),(.78,1.34),(1.16,1.42),(1.38,1.34),(1.22,1.10),(.72,.90)]
 for x in (-.48,.48):
-    side_prism("RearPanel",rear_panel,x*.95,.035,SILVER,.014)
-    side_prism("RearDarkInsert",[(.44,.96),(.66,1.32),(1.20,1.36),(1.12,1.04),(.72,.88)],x*.99,.025,DARK,.010)
+    side_prism("RearPanel",rear_panel,x*.94,.030,SILVER,.012)
+    side_prism("RearDarkInsert",[(.54,.96),(.72,1.22),(1.18,1.30),(1.08,1.08),(.76,.91)],x*.99,.025,DARK,.010)
     curve("SideLED",[(x*1.05,.38,1.12),(x*1.05,.66,1.02),(x*1.05,.88,.96)],.014,BLUE)
 
 # Front face mask and cheeks from target front view
@@ -218,12 +213,12 @@ curve("LED2_R",[( .30,-1.42,1.74),( .14,-1.43,1.58)],.012,BLUE)
 
 # Nose/windscreen/handlebars
 front_prism("Nose",[(-.14,1.20),(-.18,1.60),(-.10,1.91),(0,1.98),(.10,1.91),(.18,1.60),(.14,1.20)],-1.39,.06,BLACK,.012)
-front_prism("Windscreen",[(-.30,1.86),(-.22,2.18),(0,2.30),(.22,2.18),(.30,1.86),(0,1.80)],-.59,.09,GLASS,.020)
-beam("Stem",(0,-.54,1.72),(0,-.58,2.18),.040,METAL)
-beam("Handlebar",(-.54,-.60,2.17),(.54,-.60,2.17),.029,METAL)
+front_prism("Windscreen",[(-.29,1.80),(-.21,2.08),(0,2.19),(.21,2.08),(.29,1.80),(0,1.75)],-.59,.09,GLASS,.020)
+beam("Stem",(0,-.54,1.68),(0,-.58,2.08),.040,METAL)
+beam("Handlebar",(-.56,-.60,2.08),(.56,-.60,2.08),.029,METAL)
 for x in (-.54,.54):
-    beam("MirrorStem",(x,-.60,2.17),(x*1.38,-.58,2.47),.014,METAL)
-    box("Mirror",(x*1.42,-.57,2.50),(.13,.065,.065),BLACK,bev=.03)
+    beam("MirrorStem",(x,-.60,2.08),(x*1.38,-.58,2.37),.014,METAL)
+    box("Mirror",(x*1.42,-.57,2.40),(.13,.065,.065),BLACK,bev=.03)
 
 # Front suspension/fenders
 for x in (-FX,FX):
@@ -283,11 +278,11 @@ def render(name,loc,target,lens):
 
 blend=OUT/"ORBITA_SPORT_V8.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
 renders={}
-renders["hero"]=render("orbita_v8_hero.png",(6.2,-7.2,2.55),(0,.04,1.10),70)
+renders["hero"]=render("orbita_v8_hero.png",(6.3,-7.3,2.38),(0,.04,1.06),72)
 renders["front"]=render("orbita_v8_front.png",(0,-8.0,2.35),(0,-.08,1.12),72)
 renders["side"]=render("orbita_v8_side.png",(-8.0,.05,2.20),(0,.08,1.08),72)
 renders["rear_3q"]=render("orbita_v8_rear_3q.png",(-5.8,6.3,2.75),(0,.10,1.10),68)
-manifest={"status":"PASS","version":"ORBITA_SPORT_V9_REFINED","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
+manifest={"status":"PASS","version":"ORBITA_SPORT_V10_INTEGRATED","blender_version":".".join(map(str,bpy.app.version)),"objects":len(scene.objects),"blend_bytes":blend.stat().st_size,"renders":renders,"elapsed_seconds":round(time.time()-T0,3)}
 (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2))
 print("ORBITA_V8_PASS")
 print(json.dumps(manifest,indent=2))
