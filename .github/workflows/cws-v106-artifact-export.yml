@@ -19,7 +19,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fL --retry 3 --connect-timeout 20 --max-time 600 \
-            'https://tmpfiles.org/dl/wwAXZw7t2vc5/cws-market-replay-v1.0.6-final.apk' \
+            'https://cws-v1-0-6-export-bridge-esv0bf.v2.appdeploy.ai/resources/CWS-Market-Replay-v1.0.6-FINAL.apk' \
             -o CWS-Market-Replay-v1.0.6-FINAL.apk
 
       - name: Verify immutable identity
