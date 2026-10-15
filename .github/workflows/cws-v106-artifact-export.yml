@@ -1,0 +1,39 @@
+name: CWS v1.0.6 APK export
+
+on:
+  push:
+    branches:
+      - temp/cws-v106-artifact-export
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download exact signed APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --connect-timeout 20 --max-time 600 \
+            'https://tmpfiles.org/dl/wwAXZw7t2vc5/cws-market-replay-v1.0.6-final.apk' \
+            -o CWS-Market-Replay-v1.0.6-FINAL.apk
+
+      - name: Verify immutable identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'eeca5c56cc870119cc5413157ee40946e375e84fa2d2880fdd3ba14adaa37ba6  CWS-Market-Replay-v1.0.6-FINAL.apk' | sha256sum -c -
+          test "$(stat -c '%s' CWS-Market-Replay-v1.0.6-FINAL.apk)" = '94814601'
+
+      - name: Upload exact APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CWS-Market-Replay-v1.0.6-FINAL
+          path: CWS-Market-Replay-v1.0.6-FINAL.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
